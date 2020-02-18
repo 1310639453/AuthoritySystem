@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/security
+          http://www.springframework.org/schema/security/spring-security.xsd">
+    <!--配置不过滤静态资源-->
+    <security:http pattern="/css/**" security="none"/>
+    <security:http pattern="/img/**" security="none"/>
+    <security:http pattern="/js/**" security="none"/>
+    <security:http pattern="/plugins/**" security="none"/>
+    <security:http pattern="/login.jsp" security="none"/>
+    <security:http pattern="/pages/failer.jsp" security="none"/>
+
+    <bean id="myInvocationSecurityMetadataSource" class="cn.cui.ssm.service.security.MyInvocationSecurityMetadataSource"></bean>
+    <bean id="MyAccessDecisionManager" class="cn.cui.ssm.service.security.MyAccessDecisionManager"></bean>
+    <bean id="myFilterSecurityInterceptor" class="cn.cui.ssm.service.security.MyFilterSecurityInterceptor">
+        <property name="securityMetadataSource" ref="myInvocationSecurityMetadataSource"/>
+        <property name="accessDecisionManager" ref="MyAccessDecisionManager"/>
+    </bean>
+
+    <!--配置-->
+    <!--use-expressions="true"使用表达式-->
+    <security:http auto-config="true" use-expressions="true">
+        <!--配置认证url-->
+        <!--<security:intercept-url pattern="/**" access="ROLE_USER,ROLE_ADMIN"/>-->
+        <!--配置login-->
+        <security:form-login login-page="/login.jsp"
+                             login-processing-url="/login"
+                             username-parameter="username"
+                             password-parameter="password"
+                             authentication-failure-url="/pages/failer.jsp"
+                             default-target-url="/pages/main.jsp"/>
+        <!--配置logout-->
+        <security:logout invalidate-session="true" logout-url="/logout" logout-success-url="/login.jsp"/>
+        <security:csrf disabled="true"/>
+        <security:custom-filter ref="myFilterSecurityInterceptor" before="FILTER_SECURITY_INTERCEPTOR"/>
+    </security:http>
+
+    <!--配置认证管理-->
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="userService">
+            <security:password-encoder ref="passwordEncoder"/>
+        </security:authentication-provider>
+    </security:authentication-manager>
+    <!--配置加载类-->
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></bean>
+</beans>

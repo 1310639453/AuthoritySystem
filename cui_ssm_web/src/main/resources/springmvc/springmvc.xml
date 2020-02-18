@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <context:component-scan base-package="cn.cui.ssm.controller"/>
+
+    <!--处理器适配器， 处理器映射器-->
+    <mvc:annotation-driven conversion-service="conversionService"/>
+
+    <!--视图解析器-->
+    <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--数据转换-->
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <bean class="cn.cui.ssm.controller.converters.DateConverter"></bean>
+            </set>
+        </property>
+    </bean>
+
+    <!--过滤静态资源-->
+    <mvc:default-servlet-handler/>
+<!--    <mvc:resources mapping="/css/**" location="/css/"/>-->
+<!--    <mvc:resources mapping="/img/**" location="/img/"/>-->
+<!--    <mvc:resources mapping="/js/**" location="/js/"/>-->
+<!--    <mvc:resources mapping="/plugins/**" location="/plugins/"/>-->
+
+    <!--aop日志，因为要切controller层，所以要配置在springmvc文件里。spring容器里没有controller(spring容器与springmvc容器是两个)-->
+    <!--Log通知类-->
+    <bean id="sysLog" class="cn.cui.ssm.controller.log.SysLogAop"></bean>
+
+    <!--aopLog配置-->
+    <aop:config>
+        <!--拦截带Controller后缀的所有类的所有方法(不包括converters包与log包)-->
+        <aop:pointcut id="pt_log" expression="execution(* cn.cui.ssm.controller.*Controller.*(..)) and not execution(* cn.cui.ssm.controller.SysLogController.*(..))"/>
+        <aop:aspect id="sysLogAop" ref="sysLog">
+            <aop:before method="doBeforeLog" pointcut-ref="pt_log"/>
+            <aop:after-returning method="doAfterReturningLog" pointcut-ref="pt_log"/>
+            <aop:after-throwing method="doAfterThrowingLog" pointcut-ref="pt_log" throwing="ex"/>
+            <aop:after method="doAfterLog" pointcut-ref="pt_log"/>
+        </aop:aspect>
+    </aop:config>
+</beans>

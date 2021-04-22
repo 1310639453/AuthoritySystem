@@ -18,7 +18,7 @@
 
     <!--统一版本管理-->
     <properties>
-        <mybatis.version>3.5.0</mybatis.version>
+        <mybatis.version>3.5.6</mybatis.version>
         <spring.version>4.2.4.RELEASE</spring.version>
         <log4j.version>1.2.17</log4j.version>
         <slf4j.version>1.7.30</slf4j.version>
